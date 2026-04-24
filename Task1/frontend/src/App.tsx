@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ReactKeycloakProvider } from '@react-keycloak/web';
 import Keycloak, { KeycloakConfig } from 'keycloak-js';
 import ReportPage from './components/ReportPage';
@@ -11,9 +11,30 @@ const keycloakConfig: KeycloakConfig = {
 
 const keycloak = new Keycloak(keycloakConfig);
 
+const logPKCEInfo = () => {
+  if (keycloak) {
+    const originalLogin = keycloak.login;
+    keycloak.login = function(options?: any) {
+      console.log('PKCE Login options:', options);
+      return originalLogin.call(this, options);
+    };
+  }
+};
+
+logPKCEInfo();
+
 const App: React.FC = () => {
+  useEffect(() => {
+    console.log('PKCE enabled in initOptions: S256');
+  }, []);
+
   return (
-    <ReactKeycloakProvider authClient={keycloak}>
+    <ReactKeycloakProvider
+      authClient={keycloak}
+      initOptions={{
+        pkceMethod: "S256"
+      }}
+    >
       <div className="App">
         <ReportPage />
       </div>
